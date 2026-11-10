@@ -1,0 +1,8 @@
+{
+  "name": "dashboard-tests",
+  "private": true,
+  "description": "Test tooling only: jsdom runs the dashboard and extension checks.",
+  "devDependencies": {
+    "jsdom": "^30.1.3"
+  }
+}

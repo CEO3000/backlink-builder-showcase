@@ -1,0 +1,28 @@
+# Template for adding a new site. Copy this file to
+# config/sites/<your-site-slug>.yaml (the filename becomes the site's
+# internal id, used for its state/logs folders -- use lowercase-with-dashes).
+#
+# `url` is the ONLY required field. Everything else -- name, description,
+# topic keywords -- is auto-detected by crawling the site itself
+# (src/site_profiler.py) and cached in state/sites/<id>/profile.json.
+#
+# If you add priority_keywords, they're always kept first/weighted highest,
+# ahead of anything auto-discovered.
+
+url: "https://example.com"
+
+priority_keywords:
+  - "your most important keyword phrase"
+  - "second most important keyword phrase"
+
+contact:
+  name: "Your Name"
+  email: "you@example.com"     # used as Reply-To on outreach emails; also where replies land
+  reply_to: "you@example.com"
+
+# Optional: overrides the shared defaults in config/high_authority_targets.yaml
+# for this specific site. Omit entirely to just use the shared list.
+# high_authority_targets:
+#   - id: google-business-profile
+#     name: "Google Business Profile"
+#     signup_url: "https://business.google.com/"

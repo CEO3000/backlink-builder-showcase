@@ -1,0 +1,20 @@
+{
+  "_help": "Written by the dashboard (Publishing section). Per site: articles_per_day (1 to 10), mode (live = publish automatically, draft = private drafts only) and enabled (false pauses the site). These are laid over the site's config/backlinks*.yaml at the start of every run, from the next 09:13 UTC run on.",
+  "sites": {
+    "hypnotreatment-uk": {
+      "articles_per_day": 2,
+      "mode": "live",
+      "enabled": true
+    },
+    "social-field": {
+      "articles_per_day": 2,
+      "mode": "live",
+      "enabled": true
+    },
+    "genbooks-uk": {
+      "articles_per_day": 2,
+      "mode": "live",
+      "enabled": true
+    }
+  }
+}

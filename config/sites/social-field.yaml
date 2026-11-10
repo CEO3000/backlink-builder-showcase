@@ -1,0 +1,79 @@
+url: "https://socialfield.uk"
+restrict_to_uk: true
+
+name: "SocialField"
+
+# Backlinks for this site are published and verified by src/backlinks (config/backlinks-social-field.yaml), not requested by
+# cold email, at the owner's request. The venue campaign (config/venue_campaign.yaml) is a separate campaign and keeps running.
+email_outreach: false
+# What outreach emails say about the site.
+email_description: "SocialField is a UK events marketplace where independent organizers, such as local clubs, coaches, instructors and community groups, list, promote and sell tickets to their own events. It brings sports and fitness sessions, social games, classes, nightlife, music, food and drink, family and community events together in one place, with the price, venue, start time and remaining spaces shown up front. Many events are free, and paid tickets are confirmed instantly with a QR code shown on arrival. Organizers can also run their own memberships, giving regulars free entry to included sessions and member pricing on the rest. Becoming an organizer is free: SocialField handles discovery, booking, payment and ticketing, while organizers keep control of pricing, capacity, refunds and recurring dates and are paid out automatically."
+# Second, separate offer added after the link request. Emails that include it also get an opt-out line.
+second_offer: "If you run events yourselves, whether as a club, coach, activity provider, bar or nightclub, you can also list them on SocialField for free and sell tickets or memberships through it."
+# Also the source of search keywords while the site can't be crawled -- changing it changes what gets searched.
+description: "Find and book sports, social games, classes, and community events. Join SocialField today."
+
+priority_keywords:
+  - "Events"
+  - "sports"
+  - "volleyball"
+  - "Football"
+  - "Basketball"
+  - "badminton"
+  # Also let sports/activity pages pass the relevance check (a result's title or snippet must
+  # contain at least one of these words before it becomes a lead).
+  - "kayaking"
+  - "paddleboard"
+  - "swimming"
+  - "climbing"
+  - "outdoor"
+  - "adventure"
+  - "nightlife"
+
+# What backlink discovery searches for, combined with templates like '"useful links" {keyword}':
+# sports, activity and events websites, per the owner. Overrides the words auto-derived from the
+# description below.
+discovery_keywords:
+  - "sports clubs"
+  - "outdoor activities"
+  - "adventure sports"
+  - "extreme sports"
+  - "water sports"
+  - "kayaking"
+  - "paddleboarding"
+  - "open water swimming"
+  - "climbing"
+  - "volleyball"
+  - "badminton"
+  - "5-a-side football"
+  - "social sports"
+  - "things to do in London"
+  - "local events"
+  - "nightlife"
+
+# Audience for outreach is event organizers, entrepreneurs, and community
+# builders looking for a platform to run events/memberships on -- not
+# people looking to buy tickets. Competitors are ticket-selling platforms
+# (Eventbrite-style businesses), not sports/events content in general.
+competitor_terms:
+  - "ticket"
+  - "eventbrite"
+  - "buy tickets"
+  - "book tickets"
+  - "ticketing platform"
+
+# Closing line before the name at the end of every email.
+closing: "Best regards,"
+
+contact:
+  name: "The SocialField team"
+  email: "info@socialfield.example"
+  reply_to: "info@socialfield.example"
+
+# Outreach goes out from this mailbox via Zoho, not the shared Gmail (same one the venue campaign uses).
+sender:
+  name: "SocialField"   # shown next to the address in recipients' inboxes
+  email: "info@socialfield.example"
+  smtp_host: "smtp.zoho.eu"
+  smtp_port: 587
+  password_env: "SOCIALFIELD_SMTP_PASS"   # GitHub secret holding the Zoho app password

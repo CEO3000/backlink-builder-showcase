@@ -1,0 +1,105 @@
+# Email-marketing campaign to UK venues (London first), inviting them to list their events
+# on SocialField. Separate from the backlink outreach: its own sender, state
+# (state/venues/), log (logs/venues/) and daily cap. See src/venue_campaign.py.
+enabled: true
+site_id: social-field   # whose name, email description, sign-off and competitor terms to use
+
+max_emails_per_day: 5
+# Google bills each Places search that returns websites: 1,000 free a month, then
+# $35 per 1,000. 10 a day stays around 300 a month.
+max_searches_per_run: 10
+# Each venue website check takes a few seconds of GitHub Actions time; the run stops as soon as the day's 5 emails are sent.
+# 80 (owner, 2026-11-07: was 40, which often ran out before 5 venues with a public email were found).
+max_venues_checked_per_run: 80
+max_rechecks_per_run: 15     # earlier skipped "no company details" venues re-checked with the wider check, per run
+
+sender:
+  name: "SocialField"   # shown next to the address in recipients' inboxes
+  email: "info@socialfield.example"
+  smtp_host: "smtp.zoho.eu"
+  smtp_port: 587
+  password_env: "SOCIALFIELD_SMTP_PASS"   # GitHub secret holding the Zoho app password
+
+# The owner's niche: sports and activities (water, extreme, team, social games) plus nightlife.
+# Never cafes or restaurants -- they rarely run events (also enforced in code by Google's place type).
+venue_types:
+  - kayaking
+  - paddleboarding
+  - open water swimming
+  - wakeboarding
+  - climbing walls
+  - trampoline parks
+  - go karting
+  - paintball
+  - axe throwing
+  - padel courts
+  - 5-a-side football
+  - volleyball
+  - badminton
+  - crazy golf
+  - bowling alleys
+  - escape rooms
+  - bars
+  - cocktail bars
+  - nightclubs
+  - live music venues
+  - comedy clubs
+
+# Searched in this order as "<venue type> in <area>", starting from London: London as a whole
+# (catches most activity venues), then busy London districts (mainly for nightlife), then the rest
+# of the UK, including outdoor-sports regions for kayaking, paddleboarding and wild swimming.
+areas:
+  - London
+  - Shoreditch, London
+  - Soho, London
+  - Camden, London
+  - Brixton, London
+  - Hackney, London
+  - Clapham, London
+  - Islington, London
+  - Canary Wharf, London
+  - Greenwich, London
+  - Stratford, London
+  - Manchester
+  - Birmingham
+  - Leeds
+  - Liverpool
+  - Bristol
+  - Glasgow
+  - Edinburgh
+  - Newcastle upon Tyne
+  - Sheffield
+  - Nottingham
+  - Cardiff
+  - Belfast
+  - Leicester
+  - Brighton
+  - Southampton
+  - Portsmouth
+  - Oxford
+  - Cambridge
+  - Reading
+  - Milton Keynes
+  - Coventry
+  - York
+  - Bath
+  - Exeter
+  - Plymouth
+  - Norwich
+  - Derby
+  - Hull
+  - Bournemouth
+  - Swansea
+  - Aberdeen
+  - Dundee
+  - Inverness
+  - Cheltenham
+  - Bradford
+  - Stoke-on-Trent
+  - Sunderland
+  - Wolverhampton
+  - Middlesbrough
+  - Lake District
+  - Snowdonia
+  - Peak District
+  - Cornwall

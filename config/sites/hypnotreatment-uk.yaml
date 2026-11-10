@@ -1,0 +1,93 @@
+url: "https://hypnotreatment.uk"
+restrict_to_uk: true
+
+name: "Hypnotreatment"
+
+# Backlinks for this site are published and verified by src/backlinks (config/backlinks.yaml), not requested by
+# cold email. Set to true (or delete this line) to bring the email outreach back.
+email_outreach: false
+
+priority_keywords:
+  - "professional hypnotherapist in london"
+  - "hypnotherapy service"
+  # Bare topic words, added because is_relevant() (src/discovery.py) only
+  # requires a discovered result's title/snippet to contain one of these as
+  # a substring -- the two long phrases above almost never appear verbatim
+  # on a third-party resource/roundup page, which was silently starving
+  # discovery down to zero new leads. These are real, previously
+  # auto-detected topic words for this site (see the pre-existing
+  # "keywords" in state/sites/hypnotreatment-uk/profile.json).
+  - "hypnotherapy"
+  - "hypnotherapist"
+  - "hypnosis"
+  - "anxiety"
+  - "insomnia"
+  - "panic"
+  - "subconscious"
+  # Wider topics UK mental-health and wellbeing resource pages use, so the pages the new
+  # discovery_keywords below find are not all thrown out as off-topic.
+  - "mental health"
+  - "wellbeing"
+  - "stress"
+  - "phobia"
+  - "mindfulness"
+  - "self-help"
+  - "low mood"
+  - "trauma"
+  - "sleep problems"
+  - "stop smoking"
+
+# What gets searched, e.g. '"useful links" anxiety UK'. Replaces the five words auto-detected from the site
+# (mind, session, life, treatments, make), which returned mostly US and unrelated pages: a typical run
+# got 158 results, 153 of them not UK. "UK" or "London" in each keyword keeps the results British.
+discovery_keywords:
+  - "anxiety UK"
+  - "stress management UK"
+  - "sleep problems UK"
+  - "insomnia UK"
+  - "panic attacks UK"
+  - "phobias UK"
+  - "mental health UK"
+  - "mental wellbeing UK"
+  - "self help mental health UK"
+  - "mindfulness UK"
+  - "low mood UK"
+  - "trauma support UK"
+  - "stop smoking UK"
+  - "hypnotherapy UK"
+  - "hypnosis UK"
+  - "mental health London"
+  - "wellbeing London"
+
+# Competitors are other private hypnotherapy/therapy practices, not "any
+# page that mentions hypnotherapy" (which would false-positive on
+# legitimate mental-health resource pages) -- so these are business/
+# practice-identity words rather than the topic itself. "clinic" is the
+# single-word term that also gets checked against a lead's own domain
+# name (see looks_like_competitor() in src/site_profiler.py), which is
+# what catches a rival practice like "example-competitor.co.uk" even when
+# its specific blog post reads like genuine third-party content.
+competitor_terms:
+  - "clinic"
+  - "hypnotherapy clinic"
+  - "hypnotherapy practice"
+  - "therapy practice"
+  - "mindset clinic"
+
+# Closing line before the name at the end of every email.
+# News added to every outreach email as its own paragraph (introduced with "In addition,"), written in the owner's words.
+additional_info: "We have recently built an AI hypnotherapist, which we believe is the first of its kind. It draws on the professional skills and knowledge of recognised, qualified hypnotherapists from around the world, so people can have a real hypnotherapy session guided by proven methods. Safety comes first: every client completes a safety screening before a consultation begins, and during the session the AI asks safety questions again to check the person is comfortable and not at risk."
+closing: "Yours sincerely,"
+
+contact:
+  name: "Hypnotreatment team"
+  email: "hello@hypnotreatment.example"
+  reply_to: "hello@hypnotreatment.example"
+
+# Outreach goes out from this mailbox via Zoho, not the shared Gmail.
+sender:
+  name: "Shahin from Hypnotreatment"   # shown next to the address in recipients' inboxes
+  email: "hello@hypnotreatment.example"
+  smtp_host: "smtp.zoho.eu"
+  smtp_port: 587
+  password_env: "HYPNOTREATMENT_SMTP_PASS"   # GitHub secret holding the Zoho app password

@@ -1,0 +1,58 @@
+name: Watchdog Notify (Email)
+
+on:
+  schedule:
+    - cron: '43 9 * * *'   # once daily, 30 min after the 09:13 UTC outreach schedule -- missed-run check
+    - cron: '27 * * * *'    # hourly -- general notification relay
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: watchdog-notify
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Relay pending watchdog notifications by email
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          NOTIFY_TO: owner@example.com
+        run: python3 .github/scripts/watchdog_notify.py
+
+      - name: Check missed daily schedule and failed-run retry
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          NOTIFY_TO: owner@example.com
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 .github/scripts/check_schedule.py
+
+      - name: Commit updated notified-ids / schedule-kickoff state
+        run: |
+          git config user.name "watchdog-bot"
+          git config user.email "actions@users.noreply.github.com"
+          if [ -f .watchdog/notified_run_ids.json ]; then git add .watchdog/notified_run_ids.json; fi
+          if [ -f .watchdog/schedule_kickoff.json ]; then git add .watchdog/schedule_kickoff.json; fi
+          if ! git diff --cached --quiet; then
+            for i in 1 2 3 4 5; do
+              git commit -m "Watchdog notify: update state" && \
+              git pull --rebase origin main && \
+              git push origin main && break || { echo "push failed, retry $i"; sleep $((RANDOM % 5 + 1)); git fetch origin; git rebase origin/main; }
+            done
+          else
+            echo "nothing to commit"
+          fi

@@ -1,0 +1,53 @@
+# Global pacing / safety controls, shared across every site in config/sites/.
+# The whole point of this system is to look like natural, gradual link
+# acquisition -- never a burst. Keep these numbers low.
+
+pacing:
+  max_leads_discovered_per_run: 5      # new prospects found per scheduled run, per site
+  max_outreach_drafted_per_run: 4      # drafts queued per run, per site
+  max_outreach_sent_per_run: 2         # actual emails sent per run, per site (the workflow runs daily -- see .github/workflows/backlinks.yml)
+  min_days_between_sends: 0            # pacing comes from the daily run cadence + the per-run cap above, not an extra gap
+  max_followups_sent_per_run: 0        # follow-ups are OFF (owner's request, 2026-10-16). Set back to 1 for one polite nudge per site per run.
+
+# Never draft, send or follow up to a lead whose page address, title or contact email contains
+# any of these (upper/lower case doesn't matter). Add anyone who replies asking not to be contacted.
+do_not_contact:
+  - "example-company"   # Example Company, Canary Wharf (example-company.org, info@example-company.org)
+
+safety:
+  require_approval: false  # false = "drafted" leads send automatically, no dashboard click needed. Competitor-blocking (src/site_profiler.py::looks_like_competitor) still runs before every draft either way.
+  require_https_target: true
+  skip_if_captcha_detected: true   # never attempt to bypass CAPTCHAs/anti-bot walls
+  skip_if_requires_login: true     # never attempt automated account creation on third-party sites
+
+profiling:
+  max_pages_per_crawl: 10   # how many of the site's own pages to read when auto-detecting topics/keywords
+  refresh_days: 30          # re-crawl a site's own pages this often to keep keywords current
+  max_keywords: 20
+
+discovery:
+  # Query templates used to find genuine link opportunities (resource pages,
+  # "write for us" pages, roundups) relevant to each site's keywords.
+  # {keyword} is substituted from priority_keywords + auto-discovered keywords.
+  query_templates:
+    - '"write for us" {keyword}'
+    - '"resource page" {keyword}'
+    - 'inurl:resources {keyword}'
+    - '"guest post" {keyword} guidelines'
+    - '"suggest a resource" {keyword}'
+    - '"useful links" {keyword}'
+    - '"helpful resources" {keyword}'
+    - '"further reading" {keyword}'
+    - '"recommended resources" {keyword}'
+    - '{keyword} "submit a guest post"'
+    - '{keyword} "become a contributor"'
+    - '{keyword} "contribute to our blog"'
+    - 'intitle:resources {keyword}'
+
+# One-off dress rehearsal (src/backlinks/guestposts.rehearse): Gemini writes one article for this site and the real browser sends it into a copy
+# of a typical form on the GitHub machine. No real website is touched. Leave empty normally.
+guest_rehearsal: ""   # passed on GitHub 2026-11-01 (logs/backlinks/rehearsal-*.md); put a site id here to run it again once
+
+ai_visibility:
+  enabled: false   # off again 2026-11-01: the owner cannot spend Gemini requests right now
+  recheck_days: 7   # how often to re-check robots.txt/llms.txt/schema per site -- this doesn't change often, no need to check daily

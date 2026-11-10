@@ -1,0 +1,43 @@
+url: "https://genbooks.uk/"
+restrict_to_uk: false          # a book service is not local: do not throw away non-UK pages when looking for places to publish
+
+name: "Genbooks"
+
+# Backlinks for this site are published and verified by src/backlinks (config/backlinks-genbooks.yaml), never requested
+# by cold email. This line must stay: without it the email scheduler would start emailing on this site's behalf.
+email_outreach: false
+
+priority_keywords:
+  - "write a book"
+  - "self-publishing"
+  - "ebook"
+  - "author"
+  - "book"
+  - "writing"
+  - "publishing"
+  - "manuscript"
+
+# What gets searched when looking for pages that might accept an article (src/backlinks/discover.py).
+discovery_keywords:
+  - "writing a book"
+  - "self-publishing"
+  - "first-time author"
+  - "non-fiction writing"
+  - "book cover design"
+  - "book outline"
+  - "ebook"
+  - "writing tips"
+
+contact:
+  name: "The Genbooks team"
+  email: "support@genbooks.example"     # the support address published in the site's privacy policy
+  reply_to: "support@genbooks.example"
+
+# Guest-post emails go out from Genbooks' own mailbox via Zoho (genbooks.uk is on Zoho's international servers, zoho.com, not zoho.eu).
+# Until the GENBOOKS_SMTP_PASS secret is set, each email waits on the dashboard for the owner to send by hand.
+sender:
+  name: "The Genbooks team"   # shown next to the address in recipients' inboxes
+  email: "support@genbooks.example"
+  smtp_host: "smtp.zoho.com"
+  smtp_port: 587
+  password_env: "GENBOOKS_SMTP_PASS"   # GitHub secret holding the Zoho app password

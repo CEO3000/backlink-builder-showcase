@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# config/site.yaml and state/*.json are intentionally NOT ignored --
+# the scheduled GitHub Action needs them committed to persist across runs.
+# This is exactly why this repo must be PRIVATE (see README).
+.pytest_cache/
+node_modules/

@@ -1,0 +1,124 @@
+name: Backlink builder
+
+on:
+  workflow_dispatch: {}   # triggered daily by an external cron-job.org call to the workflow_dispatch
+                          # API at 09:13 UTC (GitHub's own native `schedule:` trigger was removed --
+                          # it kept firing hours late/erratically, causing this workflow to run twice
+                          # a day and needlessly doubling Firecrawl API usage). Also triggerable
+                          # manually from the Actions tab, or by .github/scripts/check_schedule.py's
+                          # safety net if the external cron-job.org trigger itself ever fails.
+
+permissions:
+  contents: write
+
+# If two runs get triggered close together (e.g. clicking "Run now" more than
+# once, or a manual trigger overlapping the daily schedule), queue the second
+# one instead of running both at once -- prevents them from racing to commit/
+# push at the same time, which used to make the loser fail outright.
+concurrency:
+  group: backlink-builder-run
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run scheduler
+        env:
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          HYPNOTREATMENT_SMTP_PASS: ${{ secrets.HYPNOTREATMENT_SMTP_PASS }}
+          SOCIALFIELD_SMTP_PASS: ${{ secrets.SOCIALFIELD_SMTP_PASS }}
+        run: python -m src.scheduler
+
+      - name: Run venue campaign
+        continue-on-error: true
+        env:
+          GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+          SOCIALFIELD_SMTP_PASS: ${{ secrets.SOCIALFIELD_SMTP_PASS }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python -m src.venue_campaign
+
+      - name: Publish and verify backlinks (Hypnotreatment, SocialField and Genbooks)
+        continue-on-error: true   # a problem here must never stop the venue emails, audits or the state commit
+        env:
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}   # optional; only helps if it is from a different Google project
+          DEVTO_API_KEY: ${{ secrets.DEVTO_API_KEY }}
+          DEVTO_API_KEY_SOCIALFIELD: ${{ secrets.DEVTO_API_KEY_SOCIALFIELD }}   # SocialField has its own DEV account
+          DEVTO_API_KEY_GENBOOKS: ${{ secrets.DEVTO_API_KEY_GENBOOKS }}   # Genbooks has its own DEV account
+          ALL_SECRETS: ${{ toJSON(secrets) }}   # lets a website added in the dashboard use its own DEV key without editing this file
+        run: python -m src.backlinks.pipeline
+
+      - name: Audit today's outreach for broken links
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          NOTIFY_TO: owner@example.com
+        run: python3 .github/scripts/audit_links.py
+
+      - name: Audit AI-crawler visibility
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          NOTIFY_TO: owner@example.com
+        run: python3 .github/scripts/audit_ai_visibility.py
+
+      - name: Audit whether sent outreach resulted in real backlinks
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          NOTIFY_TO: owner@example.com
+        run: python .github/scripts/audit_backlink_conversion.py
+
+      - name: Commit and push updated state and logs
+        run: |
+          git config user.name "backlink-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add state/ logs/
+          # The publishing watchdog queues its emails to you in this file; the hourly relay workflow sends them.
+          if [ -f .watchdog/agent_state.json ]; then git add .watchdog/agent_state.json; fi
+          git diff --cached --quiet || git commit -m "Automated run $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          # The concurrency group above stops two Actions runs from racing,
+          # but a same-moment dashboard edit (made directly via the GitHub
+          # API, outside Actions entirely) could still land in between our
+          # commit and push. Retry with a rebase on top of whatever landed.
+          for i in 1 2 3 4 5; do
+            if git push; then
+              exit 0
+            fi
+            echo "Push rejected (attempt $i/5), pulling and retrying..."
+            git pull --rebase origin main
+          done
+          echo "Push still failing after 5 attempts."
+          exit 1

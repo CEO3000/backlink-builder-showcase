@@ -1,0 +1,55 @@
+# Well-known, high-authority profiles worth having a presence on.
+#
+# These are NOT auto-submitted. Every one of them requires human identity or
+# phone/postcard verification by design (that's what makes them worth
+# anything -- it's also why a bot can't and shouldn't do this step).
+#
+# Do the signup once yourself (10-15 min each), then set `done: true` and
+# `maintenance: api` if you hook up their API/dashboard for future profile
+# updates. The scheduler reads this file only to remind you what's left
+# in its run report -- it never visits these URLs automatically.
+
+- id: google-business-profile
+  name: "Google Business Profile"
+  signup_url: "https://business.google.com/"
+  done: false
+  notes: "Strongest local/brand signal. Requires phone or postcard verification."
+
+- id: bing-places
+  name: "Bing Places for Business"
+  signup_url: "https://www.bingplaces.com/"
+  done: false
+
+- id: linkedin-company-page
+  name: "LinkedIn Company Page"
+  signup_url: "https://www.linkedin.com/company/setup/new/"
+  done: false
+
+- id: crunchbase
+  name: "Crunchbase"
+  signup_url: "https://www.crunchbase.com/"
+  done: false
+  notes: "Good for startups/companies specifically."
+
+- id: trustpilot
+  name: "Trustpilot Business"
+  signup_url: "https://business.trustpilot.com/"
+  done: false
+
+- id: clutch
+  name: "Clutch"
+  signup_url: "https://clutch.co/"
+  done: false
+  notes: "Relevant mainly for B2B/agency/software businesses."
+
+- id: bbb
+  name: "Better Business Bureau"
+  signup_url: "https://www.bbb.org/"
+  done: false
+  notes: "US/Canada businesses."
+
+- id: yelp
+  name: "Yelp for Business"
+  signup_url: "https://biz.yelp.com/"
+  done: false
+  notes: "Most relevant for local/consumer-facing businesses."

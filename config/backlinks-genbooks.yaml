@@ -1,0 +1,196 @@
+# Backlink publishing for genbooks.uk (src/backlinks), same pipeline as the other sites with its own settings.
+# Genbooks never sends backlink emails (email_outreach: false in config/sites/genbooks-uk.yaml).
+enabled: true
+site_id: genbooks-uk
+brand_name: Genbooks
+state_dir: backlinks-genbooks        # state/backlinks-genbooks/
+log_dir: backlinks-genbooks          # logs/backlinks-genbooks/
+
+# The goal, not a promise: only VERIFIED backlinks (a real link found on the live published page) count.
+daily_target_verified: 2
+
+# true = articles that pass every check are published and then verified; false = private drafts only.
+live_publishing: true    # hands-off: articles that pass every check are published and then verified (set to false for private drafts only)
+
+limits:
+  max_new_jobs_per_day: 4
+  max_publications_per_platform_per_day: 2   # at most this many articles a day on one platform; a new account is held to 1 for ramp_days days first
+  max_pending_approval: 3
+  ramp_days: 0                               # 0 = no ramp: 2 articles a day from the start, as the owner asked (7 would hold a new account to 1 a day for a week)
+  max_retries: 3
+  retry_backoff_hours: [1, 6, 24]
+  stuck_after_minutes: 30
+  verify_recheck_days: [1, 7, 30]
+  verify_failures_before_inaccessible: 3
+
+# Counted by us. The providers' own numbers are checked too (see src/backlinks/discover.py).
+quotas:
+  tavily_searches_per_month: 300      # 3 sites share ~1,000 free credits a month
+  firecrawl_scrapes_per_month: 300
+  tavily_searches_per_day: 8          # the owner's daily limit for this site: 3 sites x 8 = 24 a day, at most about 740 a month of the 1,000 free
+  firecrawl_scrapes_per_day: 4        # most pages read through Firecrawl per site per day (only used on alternate days)
+  gemini_calls_per_day: 80
+  gemini_patience_seconds: [60, 120]       # when Gemini is busy or rate-limited: wait this long between rounds
+  gemini_wait_budget_seconds: 300          # the owner's cap (2026-11-02): at most 5 minutes lost to Gemini trouble per website per run
+
+discovery:
+  new_candidates_per_run: 25
+  inspect_per_run: 25
+  firecrawl_scrapes_per_run: 4
+
+# Genbooks answers on genbooks.uk (no www). The last host is the one used for the homepage address in the disclosure.
+verification:
+  canonical_hosts: ["www.genbooks.uk", "genbooks.uk"]
+
+# A DEV account of its own for Genbooks, so its articles are not mixed with another brand's.
+# Guest posts (src/backlinks/guestposts.py): websites in the niche that accept outside articles and links, through their own form.
+# submit: false = review mode (everything found, checked and written, nothing sent). The owner turns it on after looking.
+# brief: what Gemini is told about the writer and the readers for every guest article (and for new topic ideas).
+# search_words: the niche words combined with "write for us", "submit a guest post" and so on (any country; Gemini judges the fit).
+guest_posts:
+  submit: true
+  author: "Genbooks team"
+  bio: "The Genbooks team runs [Genbooks]({home}), a service where you request a book and it is written, edited and designed for you."
+  brief: >-
+    The Genbooks team runs a service where people request a book that is written, edited and designed for them. The readers are
+    first-time and aspiring authors, experts and professionals who want to turn what they know into a book, and people who self-publish.
+    Voice: clear, encouraging and practical, like an experienced editor giving advice. Use concrete examples of book ideas, outlines,
+    titles and cover briefs (for example a gardening guide for small balconies, or a family memoir), with short exercises and checklists.
+    Never promise sales, readers, income or publication, and give no legal advice about copyright or contracts.
+  search_words: ["writing", "self-publishing", "authors", "writing tips", "books", "creative writing", "publishing", "non-fiction",
+                 "ebook", "memoir writing", "book editing", "storytelling"]
+
+qualification:
+  site_label: "a service where people request a book that is written, edited and designed for them"
+  fit_criteria: "fit with writing a book, authors, self-publishing, ebooks, book design, non-fiction writing"
+
+# Statements the articles may make about Genbooks, taken from its own pages (genbooks.uk, /support, /privacy). Nothing else.
+facts:
+  - "Genbooks is a service where you request a book and it is written, edited and designed for you."
+  - "To request a book you say who it is for, what it should promise the reader, and how it should feel (the tone or voice)."
+  - "The request form also lets you give a title, subtitle, genre, target word count, a description of the premise, descriptions of the front and back cover, and your own chapter outline if you have one."
+  - "The author name is printed on the cover. An 'about the author' text is used inside the book and never on the cover."
+  - "You get the first pages free to read. Continuing past the preview unlocks the full book for a small one-time fee."
+  - "A free account is needed for the preview, confirmed by a link sent to your email."
+
+claims_rule: >-
+  Never promise or imply that a book will sell, win readers, make money or be published anywhere, and do not call Genbooks the
+  best, fastest or only option. Do not make legal claims about copyright or ownership; where it fits, say readers should check
+  the terms of any service they use and decide for themselves whether the result suits them.
+reviewer_role: "a strict fact-checker for a writing and publishing publication"
+review_checks: |
+  1. A claim about {brand} or its features that is not supported by the approved facts (prices, fees, how long a book takes, word counts, formats, technology used, quality, awards, reviews).
+  2. A promise or implied guarantee of results (sales, readers, income, publication) or a claim that it is the best, fastest or only option.
+  3. An invented statistic, study, quotation or named source.
+disclosure: "\n\n---\n\n*Disclosure: I write on behalf of [Genbooks]({home}), a book-request service. This article is general information, not legal or publishing advice.*"
+
+# Article topics, each used once per platform. Genbooks has only three public pages, so every article links to the homepage with a
+# different, natural link text. Topic keys differ from the other sites' so job ids never collide.
+topics:
+  - key: gb-outline-before-writing
+    title_hint: "Outline your non-fiction book before you write a single chapter"
+    audience: "professionals and experts who want to turn what they know into a book"
+    angle: "why an outline saves months, how to move from a big idea to chapters, and how to check the order makes sense to a reader"
+    target_url: "https://genbooks.uk/"
+    anchors: ["a service that writes books from your request", "request a book from Genbooks", "how Genbooks turns a request into a book"]
+    tags: [writing, books, productivity, beginners]
+  - key: gb-the-books-promise
+    title_hint: "Start with the promise: what should your book give the reader?"
+    audience: "first-time authors deciding what their book is really about"
+    angle: "writing a one-sentence promise to the reader, testing it, and using it to cut everything that does not serve it"
+    target_url: "https://genbooks.uk/"
+    anchors: ["describing the promise your book makes", "Genbooks' book request form", "telling Genbooks what your book should promise"]
+    tags: [writing, books, beginners, career]
+  - key: gb-voice-and-tone
+    title_hint: "Choosing a voice for your book: tone choices for non-fiction"
+    audience: "authors who are unsure how formal, friendly or technical their book should sound"
+    angle: "comparing a few tones with short examples, matching tone to the reader, and staying consistent across chapters"
+    target_url: "https://genbooks.uk/"
+    anchors: ["setting the tone and voice of a book", "choosing how a book should feel", "the tone field when requesting a book"]
+    tags: [writing, books, beginners, productivity]
+  - key: gb-how-long-should-a-book-be
+    title_hint: "How long should your book be? Thinking about word count"
+    audience: "people planning their first book who wonder about length"
+    angle: "why length follows purpose, rough ranges readers expect by genre, and how to plan chapters around a target"
+    target_url: "https://genbooks.uk/"
+    anchors: ["picking a target word count", "planning a book around a word count", "setting a target length for a book"]
+    tags: [writing, books, beginners, planning]
+  - key: gb-briefing-a-cover
+    title_hint: "How to brief a book cover: what to say in a front and back cover description"
+    audience: "authors who need to explain the look and feel they want to a designer"
+    angle: "describing mood, subject and audience instead of fixing details, what belongs on the back cover, and common mistakes"
+    target_url: "https://genbooks.uk/"
+    anchors: ["describing a front and back cover", "writing cover descriptions for a book request", "cover descriptions when requesting a book"]
+    tags: [books, design, writing, beginners]
+  - key: gb-about-the-author
+    title_hint: "Writing an 'about the author' section that earns the reader's trust"
+    audience: "authors who find it awkward to write about themselves"
+    angle: "what to include, how long it should be, how to show relevant experience without bragging, and where it sits in the book"
+    target_url: "https://genbooks.uk/"
+    anchors: ["an author bio kept inside the book", "how an about the author section is used", "adding an author bio to a book request"]
+    tags: [writing, books, career, beginners]
+  - key: gb-write-for-one-reader
+    title_hint: "Write for one reader: defining who your book is for"
+    audience: "authors whose books try to speak to everyone"
+    angle: "describing a single reader in detail, what that changes in examples and language, and how to test a draft against that person"
+    target_url: "https://genbooks.uk/"
+    anchors: ["saying who a book is for", "the who is this book for question", "defining the reader before requesting a book"]
+    tags: [writing, books, beginners, productivity]
+  - key: gb-title-and-subtitle
+    title_hint: "Choosing a book title and subtitle that tell readers what they get"
+    audience: "first-time authors stuck on what to call their book"
+    angle: "what a title and a subtitle each do, testing ideas out loud, being specific about the reader's benefit, and avoiding titles that are clever but unclear"
+    target_url: "https://genbooks.uk/"
+    anchors: ["giving a book request a title and subtitle", "a title and subtitle for your book request", "naming the book you request"]
+    tags: [writing, books, titles, authors]
+  - key: gb-family-memoir
+    title_hint: "Writing a family memoir: where to start and what to include"
+    audience: "people who want to record their own or their family's story"
+    angle: "choosing a focus, gathering memories and photos, interviewing relatives, structuring by theme or by time, and handling sensitive memories with care"
+    target_url: "https://genbooks.uk/"
+    anchors: ["requesting a memoir as a book", "turning family stories into a book", "a book written from your own story"]
+    tags: [memoir, writing, family, books]
+  - key: gb-book-as-a-gift
+    title_hint: "A book as a gift: making something personal for someone you love"
+    audience: "people looking for a meaningful, personal gift for a family member or friend"
+    angle: "picking the subject, such as shared memories, advice or a story for a child, deciding the tone, and the details that make it feel personal"
+    target_url: "https://genbooks.uk/"
+    anchors: ["requesting a personal book as a gift", "a book made as a personal gift", "a gift book written to your request"]
+    tags: [gifts, books, writing, family]
+  - key: gb-early-feedback
+    title_hint: "Getting useful feedback on your book idea before you write it"
+    audience: "aspiring authors with an idea or an outline but no draft yet"
+    angle: "who to ask, the questions that get honest answers, describing the book in two sentences, and deciding which feedback to act on"
+    target_url: "https://genbooks.uk/"
+    anchors: ["describing your book idea in a request", "the premise field of a book request", "explaining your book idea to Genbooks"]
+    tags: [writing, feedback, books, authors]
+  - key: gb-preview-before-you-commit
+    title_hint: "Read the first pages before you commit: how to judge a book sample"
+    audience: "people deciding whether a book or a book service suits them"
+    angle: "what to look for in an opening: clarity, voice, structure and fit with the promise, and how to decide with a short sample"
+    target_url: "https://genbooks.uk/"
+    anchors: ["a free preview of the first pages", "reading the first pages of a book for free", "trying a free book preview"]
+    tags: [books, writing, beginners, productivity]
+
+# Keeps the topics fresh: when fewer than `when_unused_below` unused topics are left, Gemini proposes `count` new ones.
+# A proposal may only link to one of these pages, must take a clearly different angle from everything already written,
+# and must use link texts nobody has used.
+topic_generation:
+  enabled: true
+  when_unused_below: 4
+  count: 6
+  allowed_targets:
+    - url: "https://genbooks.uk/"
+      about: "the Genbooks homepage, where a book is requested"
+
+# Wording the articles must never use: guarantees and unsupported superlatives.
+banned_claims:
+  - "guarantee"
+  - "guaranteed"
+  - "100%"
+  - "bestseller"
+  - "best seller"
+  - "get rich"
+  - "make money fast"
+  - "number one"
+  - "no effort"

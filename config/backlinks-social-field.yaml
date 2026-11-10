@@ -1,0 +1,205 @@
+# Backlink publishing for socialfield.uk (src/backlinks), same pipeline as config/backlinks.yaml with its own settings.
+# SocialField's "please link to us" emails are switched off for good (email_outreach: false in its site config).
+# The venue campaign (config/venue_campaign.yaml) is a different campaign and is not touched by any of this.
+enabled: true
+site_id: social-field
+brand_name: SocialField
+state_dir: backlinks-social-field    # state/backlinks-social-field/
+log_dir: backlinks-social-field      # logs/backlinks-social-field/
+
+# The goal, not a promise: only VERIFIED backlinks (a real link found on the live published page) count.
+daily_target_verified: 2
+
+# false = articles are saved as private drafts on the platform and wait in PENDING_APPROVAL.
+# true = publish immediately and verify the live page.
+live_publishing: true    # hands-off: articles that pass every check are published and then verified (set to false for private drafts only)
+
+limits:
+  max_new_jobs_per_day: 4
+  max_publications_per_platform_per_day: 2   # at most this many articles a day on one platform; a new account is held to 1 for ramp_days days first
+  max_pending_approval: 3
+  ramp_days: 0                               # 0 = no ramp: 2 articles a day from the start, as the owner asked (7 would hold a new account to 1 a day for a week)
+  max_retries: 3
+  retry_backoff_hours: [1, 6, 24]
+  stuck_after_minutes: 30
+  verify_recheck_days: [1, 7, 30]
+  verify_failures_before_inaccessible: 3
+
+# Counted by us. Tavily and Firecrawl each have about 1,000 free credits a month shared by both sites, so each site gets
+# less than half. Gemini's daily limit is per Google project; see src/backlinks/llm.py.
+quotas:
+  tavily_searches_per_month: 300      # 3 sites share ~1,000 free credits a month; the providers' own numbers are checked too
+  firecrawl_scrapes_per_month: 300
+  tavily_searches_per_day: 8          # the owner's daily limit for this site: 3 sites x 8 = 24 a day, at most about 740 a month of the 1,000 free
+  firecrawl_scrapes_per_day: 4        # most pages read through Firecrawl per site per day (only used on alternate days)
+  gemini_calls_per_day: 80
+  gemini_patience_seconds: [60, 120]       # when Gemini is busy or rate-limited: wait this long between rounds
+  gemini_wait_budget_seconds: 300          # the owner's cap (2026-11-02): at most 5 minutes lost to Gemini trouble per website per run
+
+discovery:
+  new_candidates_per_run: 25
+  inspect_per_run: 25
+  firecrawl_scrapes_per_run: 4
+
+verification:
+  canonical_hosts: ["socialfield.uk", "www.socialfield.uk"]
+
+# A DEV account of its own for SocialField, so its articles are not mixed with another brand's.
+# Guest posts (src/backlinks/guestposts.py): websites in the niche that accept outside articles and links, through their own form.
+# submit: false = review mode (everything found, checked and written, nothing sent). The owner turns it on after looking.
+# brief: what Gemini is told about the writer and the readers for every guest article (and for new topic ideas).
+# search_words: the niche words combined with "write for us", "submit a guest post" and so on (any country; Gemini judges the fit).
+guest_posts:
+  submit: true
+  author: "SocialField team"
+  bio: "The SocialField team runs [SocialField]({home}), a UK events marketplace where local clubs, coaches, instructors and community groups list their events."
+  brief: >-
+    The SocialField team runs a UK events marketplace where local clubs, coaches, instructors and community groups list their events.
+    The readers are people who run, or want to start, a local club, class, meetup or social night, and people looking for ways to meet
+    others and stay active. Voice: friendly, practical and encouraging, like an organizer who has run many sessions sharing what works.
+    Use concrete examples such as a Tuesday evening running group, a monthly board games night or a beginners' yoga class, with
+    checklists and simple practical numbers such as group sizes and timings, but never invented statistics. Mention safety, venue
+    rules, insurance and licensing only as things the organizer should check, never as legal advice.
+  search_words: ["sports", "fitness", "events", "community", "running club", "outdoor activities", "event planning", "hobbies",
+                 "social life", "team sports", "yoga", "London lifestyle", "social events", "concerts"]
+
+qualification:
+  site_label: "a UK events marketplace where organizers list sports sessions, social games, classes and nightlife events"
+  fit_criteria: "fit with local sports and fitness, social events, running a club or class, community organizing, nightlife"
+
+# Statements the articles may make about SocialField, taken from its own pages. Anything else about it is rejected.
+facts:
+  - "SocialField is a UK events marketplace where independent organizers, such as local clubs, coaches, instructors and community groups, list, promote and sell tickets to their own events."
+  - "It brings sports and fitness sessions, social games, classes, nightlife, music, food and drink, family and community events together in one place."
+  - "Each event page shows the date, start time, where to meet on a map, and the price, and many events are free."
+  - "A ticket arrives by email as soon as you book, and the refund rules are set by each organizer and shown before you pay."
+  - "Becoming an organizer is free: SocialField handles discovery, booking, payment and ticketing, while organizers keep control of pricing, capacity, refunds and recurring dates, and payouts arrive automatically."
+  - "Organizers can offer memberships. Standard members get free entry to events the organizer marks as included, up to one included event a day. VIP members get unlimited included events a day plus an automatic 10% discount on one ticket, once per event, to the organizer's other paid events."
+  - "People can follow organizers and get an email whenever they publish a new event."
+
+claims_rule: >-
+  Never promise or imply results such as attendance, ticket sales, income or growth, and do not call SocialField the best,
+  biggest or only option. Do not give legal, tax or insurance advice; where it fits, say organizers should check
+  licensing, insurance and safety rules for their own event.
+reviewer_role: "a strict fact-checker for a community and events publication"
+review_checks: |
+  1. A claim about {brand} or its features that is not supported by the approved facts (fees, prices, numbers, locations, partnerships, awards, reviews).
+  2. A promise or implied guarantee of results (attendance, ticket sales, income, growth) or a claim that it is the best, biggest or only option.
+  3. An invented statistic, study, quotation or named source.
+disclosure: "\n\n---\n\n*Disclosure: I write on behalf of [SocialField]({home}), a UK events marketplace. This article is general information, not legal, tax or insurance advice.*"
+
+# Article topics, each used once per platform. target_url must be a real page on the site (checked by the tests).
+# Topic keys are different from config/backlinks.yaml so job ids and notifications never collide.
+topics:
+  - key: sf-weekly-session
+    title_hint: "How to run a weekly session that people keep coming back to"
+    audience: "people starting or running a local sports club, class or social group, including people who run one alongside a full-time job"
+    angle: "a fixed time and place, a welcoming first five minutes, simple rules, a comfortable group size, and asking regulars for feedback"
+    target_url: "https://www.socialfield.uk/events-category-sports-and-fitness.html"
+    anchors: ["sports and fitness events on SocialField", "local sports and fitness sessions", "how organizers list weekly sessions"]
+    tags: [community, beginners, productivity, fitness]
+  - key: sf-first-event-checklist
+    title_hint: "Your first event: a practical checklist for new organizers"
+    audience: "first-time organizers of a meetup, class, tournament or social"
+    angle: "choosing the date, place and capacity, setting the price, a clear meeting point, how to communicate with attendees, and what to do on the day"
+    target_url: "https://www.socialfield.uk/register"
+    anchors: ["become an organizer on SocialField", "listing your first event on SocialField", "SocialField's organizer sign-up"]
+    tags: [community, beginners, business, productivity]
+  - key: sf-memberships-for-regulars
+    title_hint: "Memberships for regulars: how simple tiers can work for a small organizer"
+    audience: "organizers of weekly classes, clubs and social sessions with a loyal core of regulars"
+    angle: "why regulars like predictability, how two simple tiers can be structured, what to include, and how to explain it clearly"
+    target_url: "https://www.socialfield.uk/membership"
+    anchors: ["SocialField memberships", "how SocialField memberships work", "membership packages for regulars"]
+    tags: [community, business, beginners, productivity]
+  - key: sf-fewer-no-shows
+    title_hint: "Fewer no-shows at small events: simple habits that work"
+    audience: "organizers of small in-person events and classes in London and the UK"
+    angle: "clear details on the event page, a plain refund rule shown before payment, a short reminder, small group sizes and a waiting list"
+    target_url: "https://www.socialfield.uk/events-in-london.html"
+    anchors: ["events in London on SocialField", "London events with the details up front", "how London events show date, place and price"]
+    tags: [community, productivity, business, beginners]
+  - key: sf-pricing-small-events
+    title_hint: "How to price a small community event without scaring people off"
+    audience: "people organizing their first paid or free community events"
+    angle: "working out costs, when free works, simple price points, and how perks for regulars change the picture"
+    target_url: "https://www.socialfield.uk/events"
+    anchors: ["browse events on SocialField", "events with the price shown up front", "see how events show their price"]
+    tags: [community, business, beginners, productivity]
+  - key: sf-games-night-formats
+    title_hint: "Social games night formats that help strangers talk"
+    audience: "people hosting games nights, quizzes and social meetups"
+    angle: "easy icebreakers, team formats that mix people, handling noise and space, and ending the evening well"
+    target_url: "https://www.socialfield.uk/events-category-community.html"
+    anchors: ["community events on SocialField", "local community meetups and games nights", "community events near you"]
+    tags: [community, beginners, productivity, fun]
+  - key: sf-hosting-a-night-out
+    title_hint: "Hosting a social night out: format, venue and what makes people stay"
+    audience: "people organizing social nights at bars and venues"
+    angle: "choosing a venue and format, a clear start, helping newcomers join in, and keeping the group together"
+    target_url: "https://www.socialfield.uk/events-category-nightlife.html"
+    anchors: ["nightlife events on SocialField", "social nights listed on SocialField", "how social nights are listed"]
+    tags: [community, beginners, business, productivity]
+  - key: sf-beginner-friendly-sessions
+    title_hint: "Making a sports session welcoming for complete beginners"
+    audience: "coaches and club organizers who want more newcomers to stay"
+    angle: "what beginners worry about before they arrive, a clear first ten minutes, mixed ability drills, a buddy for new people, and following up after the first visit"
+    target_url: "https://www.socialfield.uk/events-category-sports-and-fitness.html"
+    anchors: ["beginner friendly sports sessions", "sports sessions where beginners are welcome", "local fitness sessions for newcomers"]
+    tags: [community, fitness, sports, coaching]
+  - key: sf-promote-on-small-budget
+    title_hint: "Getting the word out about a local event without a big budget"
+    audience: "volunteers and small organizers promoting a club night, class or community event"
+    angle: "a clear event page, the people who already come, local noticeboards and groups, partners such as cafes and venues, and timing the reminders"
+    target_url: "https://www.socialfield.uk/register"
+    anchors: ["list your event for free on SocialField", "a free place for organizers to list events", "SocialField for local organizers"]
+    tags: [community, events, marketing, local]
+  - key: sf-meeting-people-remote-work
+    title_hint: "Working from home and missing people? Meeting others through local activities"
+    audience: "people who work from home most days and want a social life outside work"
+    angle: "why regular activities beat one-off events, choosing something you will actually attend, going alone, and keeping it going"
+    target_url: "https://www.socialfield.uk/events-in-london.html"
+    anchors: ["find local events on SocialField", "local sports and social events in London", "events in London you can join"]
+    tags: [remotework, community, productivity, beginners]
+
+# Wording the articles must never use: guarantees and unsupported superlatives.
+banned_claims:
+  - "guarantee"
+  - "guaranteed"
+  - "100%"
+  - "sell out"
+  - "sold out every"
+  - "best events"
+  - "number one"
+  - "no risk"
+  - "make money fast"
+  - "get rich"
+
+# Keeps the topics fresh: when fewer than `when_unused_below` unused topics are left, Gemini proposes `count` new ones.
+# A proposal may only link to one of these pages, must take a clearly different angle from everything already written,
+# and must use link texts nobody has used.
+topic_generation:
+  enabled: true
+  when_unused_below: 4
+  count: 6
+  allowed_targets:
+    - url: "https://www.socialfield.uk/events"
+      about: "browse all events"
+    - url: "https://www.socialfield.uk/events-in-london.html"
+      about: "events in London"
+    - url: "https://www.socialfield.uk/events-category-sports-and-fitness.html"
+      about: "sports and fitness events"
+    - url: "https://www.socialfield.uk/events-category-nightlife.html"
+      about: "nightlife events"
+    - url: "https://www.socialfield.uk/events-category-community.html"
+      about: "community events and meetups"
+    - url: "https://www.socialfield.uk/events-category-music.html"
+      about: "music events"
+    - url: "https://www.socialfield.uk/events-category-food-and-drink.html"
+      about: "food and drink events"
+    - url: "https://www.socialfield.uk/events-category-family-and-education.html"
+      about: "family and education events"
+    - url: "https://www.socialfield.uk/membership"
+      about: "organizer memberships for regulars"
+    - url: "https://www.socialfield.uk/register"
+      about: "becoming an organizer"
