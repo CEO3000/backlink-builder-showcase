@@ -57,7 +57,7 @@ More detail, including the check pipeline and the state machine, is in [docs/ARC
 | Never contact competitors | Excluded by word lists and by a second model check. |
 | Low, controlled volume | A hard daily cap per website, daily search and credit limits, one use per website ever, and one email per address ever. |
 | Email only where invited | The address must come from the website's own guidelines, never a footer contact, and is used from the organisation's own mailbox. |
-| Lawful marketing email | The separate venue campaign only writes to registered companies, with an opt-out line. |
+| Marketing email | The separate venue campaign writes only to businesses, from the organisation's own mailbox, and names the sender. It currently has no unsubscribe line (the closing line was replaced by a plain thank-you at the owner's choice), which is a known gap. |
 
 ## Testing
 
